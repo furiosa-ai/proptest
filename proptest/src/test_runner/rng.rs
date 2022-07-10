@@ -409,6 +409,31 @@ impl TestRng {
         TestRng::from_seed_internal(Seed::from_bytes(algorithm, seed))
     }
 
+    /// Create a new RNG with the given algorithm and fixed-sized seed.
+    ///
+    /// The `seed` will be extended to an appropriate length for `algorithm`.
+    pub fn from_u32_seed(algorithm: RngAlgorithm, seed: u32) -> Self {
+        Self::from_seed_internal(match algorithm {
+            RngAlgorithm::XorShift => {
+                let mut buf = Self::SEED_FOR_XOR_SHIFT;
+                buf[0..4].copy_from_slice(&seed.to_ne_bytes());
+                Seed::XorShift(buf)
+            }
+            RngAlgorithm::ChaCha => {
+                let mut buf = Self::SEED_FOR_CHA_CHA;
+                buf[0..4].copy_from_slice(&seed.to_ne_bytes());
+                Seed::ChaCha(buf)
+            }
+            RngAlgorithm::PassThrough => unreachable!(),
+            RngAlgorithm::Recorder => {
+                let mut buf = Self::SEED_FOR_CHA_CHA;
+                buf[0..4].copy_from_slice(&seed.to_ne_bytes());
+                Seed::Recorder(buf)
+            }
+            RngAlgorithm::_NonExhaustive => unreachable!(),
+        })
+    }
+
     /// Dumps the bytes obtained from the RNG so far (only works if the RNG is
     /// set to `Recorder`).
     ///

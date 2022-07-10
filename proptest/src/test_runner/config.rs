@@ -48,6 +48,8 @@ const RNG_ALGORITHM: &str = "PROPTEST_RNG_ALGORITHM";
 #[cfg(feature = "std")]
 const DISABLE_FAILURE_PERSISTENCE: &str =
     "PROPTEST_DISABLE_FAILURE_PERSISTENCE";
+#[cfg(feature = "std")]
+const SEED: &str = "PROPTEST_SEED";
 
 /// Override the config fields from environment variables, if any are set.
 /// Without the `std` feature this function returns config unchanged.
@@ -131,6 +133,7 @@ pub fn contextualize_config(mut result: Config) -> Config {
                 RNG_ALGORITHM,
             ),
             DISABLE_FAILURE_PERSISTENCE => result.failure_persistence = None,
+            SEED => parse_or_warn(&value, &mut result.seed, "u32", SEED),
 
             _ => {
                 if var.starts_with("PROPTEST_") {
@@ -169,6 +172,7 @@ fn default_default_config() -> Config {
         #[cfg(feature = "std")]
         verbose: 0,
         rng_algorithm: RngAlgorithm::default(),
+        seed: 0,
         _non_exhaustive: (),
     }
 }
@@ -380,6 +384,12 @@ pub struct Config {
     /// (The variable is only considered when the `std` feature is enabled,
     /// which it is by default.)
     pub rng_algorithm: RngAlgorithm,
+
+    /// The default, algorithm-agnostic seed for RNG.
+    ///
+    /// If `seed` is nonzero and `TestRunner` is constructed via `TestRunner::new`, the `seed` will
+    /// be used to seed RNG.
+    pub seed: u32,
 
     // Needs to be public so FRU syntax can be used.
     #[doc(hidden)]
