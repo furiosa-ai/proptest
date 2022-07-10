@@ -44,6 +44,7 @@ const TIMEOUT: &str = "PROPTEST_TIMEOUT";
 #[cfg(feature = "std")]
 const VERBOSE: &str = "PROPTEST_VERBOSE";
 const RNG_ALGORITHM: &str = "PROPTEST_RNG_ALGORITHM";
+const SEED: &str = "PROPTEST_SEED";
 
 #[cfg(feature = "std")]
 fn contextualize_config(mut result: Config) -> Config {
@@ -124,6 +125,7 @@ fn contextualize_config(mut result: Config) -> Config {
                 "RngAlgorithm",
                 RNG_ALGORITHM,
             ),
+            SEED => parse_or_warn(&value, &mut result.seed, "u32", SEED),
 
             _ => {
                 if var.starts_with("PROPTEST_") {
@@ -161,6 +163,7 @@ fn default_default_config() -> Config {
         #[cfg(feature = "std")]
         verbose: 0,
         rng_algorithm: RngAlgorithm::default(),
+        seed: 0,
         _non_exhaustive: (),
     }
 }
@@ -347,6 +350,12 @@ pub struct Config {
     /// - `xs` — `RngAlgorithm::XorShift`
     /// - `cc` — `RngAlgorithm::ChaCha`
     pub rng_algorithm: RngAlgorithm,
+
+    /// The default, algorithm-agnostic seed for RNG.
+    ///
+    /// If `seed` is nonzero and `TestRunner` is constructed via `TestRunner::new`, the `seed` will
+    /// be used to seed RNG.
+    pub seed: u32,
 
     // Needs to be public so FRU syntax can be used.
     #[doc(hidden)]
