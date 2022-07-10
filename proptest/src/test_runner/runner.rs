@@ -315,7 +315,13 @@ impl TestRunner {
     /// changed between releases without notice.
     pub fn new(config: Config) -> Self {
         let algorithm = config.rng_algorithm;
-        TestRunner::new_with_rng(config, TestRng::default_rng(algorithm))
+        let rng = if config.seed == 0 {
+            TestRng::default_rng(algorithm)
+        } else {
+            TestRng::from_u32_seed(algorithm, config.seed)
+        };
+
+        TestRunner::new_with_rng(config, rng)
     }
 
     /// Create a fresh `TestRunner` with the standard deterministic RNG.
